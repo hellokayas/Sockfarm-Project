@@ -26,34 +26,45 @@ import random
 # actually deal with Amazon data, prior to applying kmeans, look at whiten.
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.whiten.html#scipy.cluster.vq.whiten
 
-# Generate the test set of accounts
+# we test with bin matrices which has say 20 columns, this value should be 300
+# we take 10 rows which is the number of accounts, this value should be around 10^6
 mu = 0
 sigma = 1.0
-A = np.random.normal(mu, sigma, (10,300))
-
+A = np.random.normal(mu, sigma, (10,10))
 #Now do the 2-means and get the output.
 centroid, label = kmeans2(A, 2, minit='points')
-#centroid will be two arrays each of 300 dimension for the two clusters
+#centroid will be two arrays each of 10 dimension for the two clusters
 # label[i] is the code or index of the centroid the ith observation is closest to.
 
 # Now we write the function that partitons A into A0 and A1
-def partition(A):
-    centroid, label = kmeans2(A, 2, minit='points')
+# A0 and A1 are lists which will contain only the indices of the rows which are supposed to be in A0 and A1
+# partition takes an arr which means it contains the matrix made up of A[arr[i]]
+# we need to form matrix from the rows of A as mentioned in arr
+arr = [0,1,2,3,4,5,6,7,8,9]
+def partition(arr):
+    matrix = []
+    for i in range(len(arr)):
+        matrix.append(A[i,:])
+    matrix = np.array(matrix)
+    centroid, label = kmeans2(matrix, 2, minit='points')
     A0,A1 = [],[]
-    for i in range(10):
+    for i in range(len(arr)):# this is the num of the rows, i.e. the num of accts
         if label[i] == 0:
-            A0.append(A[i,:])
+            A0.append(i)# means A[i] should be in this as a row
         else:
-            A1.append(A[i,:])
-    A0 = np.array(A0)
-    A1 = np.array(A1)
-    return (A0,A1)
+            A1.append(i)# means A[i] should be in this as a row
+    #A0 = np.array(A0)
+    #A1 = np.array(A1)
+    return (A0,A1)# returns two lists so that x = A0[i], A[x] will give the reqd row
 
-# x,y = partition(A) this gives the two matrices as we want and now we can recurse on them if the number of rows in x or y is still
-# greater than tau
-
-#Now to create tree recursively, https://stackoverflow.com/questions/14084367/tree-in-python-recursive-children-creating
+# x,y = partition(A) this gives the two matrices as we want and now we can recurse on them if the number of rows in x or y is still greater than tau
 '''
+x,y = partition(A)
+x
+This will print [0, 2, 3, 5, 7, 8], though this answer chnages everytime we run the code since Kmeans2 differs in the output everytime
+
+Now to create tree recursively, https://stackoverflow.com/questions/14084367/tree-in-python-recursive-children-creating
+
 r = Rectangle (100, 100)
 r.splitUntilLevel (2)
 print (r)
@@ -67,8 +78,12 @@ this will print the following
   100 x 68
     32 x 68
     68 x 68
+    
+We imitate the same idea here for building the tree
 '''
 
+tau = 3
+# data contains lists which contain indices i. A[i] will be the reqd rows, to start with data = [0,...,9]
 class Node:
     def __init__ (self, data, parent = None):
         #self.width = width
@@ -83,7 +98,7 @@ class Node:
 
     def split (self):
         if self.children == []: return
-        numrow,numcol = self.data.shape
+        numrow = len(self.data)
         if numrow <= tau:
             self.children = []
         A1,A2 = partition(self.data)
@@ -94,8 +109,7 @@ class Node:
         self.split ()
         for child in self.children: child.splitUntilLevel (maxLevel)
 
-    def __str__ (self):
+    def __str__ (self):#-----------------------------------------------this needs to be modified to print tree efficiently and check if algorithm 2 and 3 are working
         s = "{} x {}".format(self.data.size[0], self.data.size[1])
         for child in self.children: s += str (child)
         return s
-
