@@ -1,0 +1,13 @@
+rev2data
+
+.DS_Store
+.idea
+.vscode
+
+# python cache
+__pycache__
+# jupyter notebook cache
+.ipynb_checkpoints
+
+*.pkl
+
