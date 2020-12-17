@@ -1,10 +1,12 @@
-import fraudar
-import fraud_eagle as feagle
-import rsd
 import argparse
-import pandas as pd
-import networkx as nx
 from datetime import datetime
+
+import fraud_eagle as feagle
+import fraudar
+import networkx as nx
+import pandas as pd
+import rsd
+
 from rev2 import rev2compute
 
 
