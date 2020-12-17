@@ -1,5 +1,16 @@
 # Sockfarm-Project
 
+## create conda env from yaml
+If you want to create a new conda env, do the follows
+```bash
+conda env create -f env.yaml
+```
+
+If you want to modify the existing env, do the follows instead
+```
+conda env update
+```
+
 ## overall organization
 
 ```bash
