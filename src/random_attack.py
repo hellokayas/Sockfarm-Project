@@ -99,6 +99,7 @@ def do_rev2(G):
     G = G.copy()
     for e in G.edges:
         G.edges[e]["weight"] = G.edges[e]["rating"]
+    # ! lower means anormalous
     scores = rev2compute(G, max_iter=15)
     return scores
 
@@ -111,6 +112,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
+    # TODO: from data frames to graphs, we need to split train and test sets
     data_nw_df, data_gt_df = load_data(data_name=args.data)
     G = build_nx(data_nw_df)
 
