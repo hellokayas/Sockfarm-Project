@@ -1,29 +1,17 @@
 import argparse
-from datetime import datetime
+import pickle
+from multiprocessing import Pool
+from pathlib import Path
 
 import fraud_eagle as feagle
 import fraudar
 import networkx as nx
+import numpy as np
 import pandas as pd
 import rsd
 
 from rev2 import rev2compute
-
-
-def load_data(data_name):
-    data_nw_df = pd.read_csv(f"../rev2data/{data_name}/{data_name}_network.csv", header=None,
-                             names=["src", "dest", "rating", "timestamp"], parse_dates=[3], infer_datetime_format=True)
-    data_gt_df = pd.read_csv(f"../rev2data/{data_name}/{data_name}_gt.csv", header=None, names=["id", "label"])
-
-    if data_name != "epinions":
-        data_nw_df["timestamp"] = data_nw_df["timestamp"].astype(int).apply(datetime.fromtimestamp)
-
-    data_nw_df["src"] = "u" + data_nw_df["src"].astype(str)
-    data_nw_df["dest"] = "p" + data_nw_df["dest"].astype(str)
-    data_nw_df["rating"] = (data_nw_df["rating"] - data_nw_df["rating"].min()) / \
-        (data_nw_df["rating"].max() - data_nw_df["rating"].min()) * 2 - 1
-
-    return data_nw_df, data_gt_df
+from utils import load_data, split_data_by_time
 
 
 def build_nx(data_nw_df):
@@ -106,23 +94,64 @@ def do_rev2(G):
     return scores
 
 
+def naive_attack(df, socks, n_prod=10, n_req=100):
+    targets = np.random.choice(df["dest"], size=n_prod, replace=False)
+    rdf = pd.DataFrame(
+        [
+            {
+                "src": s,
+                "dest": t,
+                "rating": df["rating"].max(),
+                "timestamp": df["timestamp"].max(),
+            }
+            for s, t in zip(np.random.choice(socks, size=n_req), np.random.choice(targets, size=n_req))
+        ]
+    )
+    return rdf
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="random attacks on data")
     parser.add_argument("--alg", action="store", type=str, choices=["fraudar", "feagle", "rsd", "rev2"])
     parser.add_argument("--data", action="store", type=str, choices=["alpha", "otc", "amazon", "epinions"])
 
+    parser.add_argument("--jobs", action="store", type=int, default=None)
+    parser.add_argument("--splits", action="store", type=int, default=5)
+    parser.add_argument("--total", action="store", type=int, default=10)
+    parser.add_argument("--req", action="store", type=int, default=100)
+    parser.add_argument("--acc", action="store", type=int, default=10)
+    parser.add_argument("--prod", action="store", type=int, default=10)
+
     args = parser.parse_args()
     print(args)
+    np.random.seed(0)
+    pool = Pool(processes=args.jobs)
 
-    # TODO: from data frames to graphs, we need to split train and test sets
     data_nw_df, data_gt_df = load_data(data_name=args.data)
-    G = build_nx(data_nw_df)
 
+    longest = data_nw_df["src"].map(lambda x: len(x)).max()
+    socks = [f"u{a}" for a in np.random.randint(low=10**longest, high=10**(longest+1), size=args.acc)]
+
+    df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
+    df_splits = [pd.concat(df_total_list[i:args.total-args.splits+i+1]) for i in range(args.splits)]
+    df_attack = [pd.concat([df, naive_attack(df, socks=socks, n_prod=args.prod, n_req=args.req)])
+                 for df in df_splits]
+    G_list = [build_nx(df) for df in df_attack]
+
+    # ! parallel run the chunks
     if args.alg == "fraudar":
-        scores = do_fraudar(G)
+        scores = pool.map(func=do_fraudar, iterable=G_list, chunksize=1)
     elif args.alg == "feagle":
-        socres = do_feagle(G)
+        scores = pool.map(func=do_feagle, iterable=G_list, chunksize=1)
     elif args.alg == "rsd":
-        scores = do_rsd(G)
+        scores = pool.map(func=do_rsd, iterable=G_list, chunksize=1)
     elif args.alg == "rev2":
-        scores = do_rev2(G)
+        scores = pool.map(func=do_rev2, iterable=G_list, chunksize=1)
+
+    # ! only save the users with ground truth, including the socks as well
+    output_users = socks + data_gt_df["id"].tolist()
+    output_scores = [{u: score[u] for u in score if u in output_users} for score in scores]
+    output_path = Path(f"../res/naive_attack/{args.alg}-{args.data}.pkl")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "wb") as fp:
+        pickle.dump(output_scores, fp)
