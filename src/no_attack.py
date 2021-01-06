@@ -62,7 +62,6 @@ if __name__ == "__main__":
     for G in G_list:
         G.add_nodes_from(socks)
 
-
     # ! parallel run the chunks
     if args.alg == "fraudar":
         scores = pool.map(func=do_fraudar, iterable=G_list, chunksize=1)
