@@ -1,3 +1,5 @@
+#!/usr/env bash
+
 python random_attack.py --data alpha --alg fraudar &
 python random_attack.py --data alpha --alg rsd &
 python random_attack.py --data alpha --alg rev2 &

@@ -1,6 +1,8 @@
-import pandas as pd
 import argparse
 from datetime import datetime
+
+import networkx as nx
+import pandas as pd
 
 
 def load_data(data_name):
@@ -29,6 +31,18 @@ def split_data_by_time(df, n_splits=10):
     df["split"] = (df["timestamp"] - time_min) // time_dlt
     gps = df.groupby("split")
     return [gps.get_group(i) for i in range(n_splits)]
+
+
+def build_nx(data_nw_df: pd.DataFrame) -> nx.DiGraph:
+    G = nx.from_pandas_edgelist(
+        data_nw_df,
+        source="src",
+        target="dest",
+        edge_attr=True,
+        create_using=nx.DiGraph(),
+    )
+
+    return G
 
 
 if __name__ == "__main__":

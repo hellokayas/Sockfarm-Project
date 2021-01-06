@@ -10,7 +10,7 @@ from utils import load_data, split_data_by_time, build_nx
 from detectoers import do_feagle, do_fraudar, do_rev2, do_rsd
 
 
-def naive_attack(df, socks, n_prod=10, n_req=100):
+def no_attack(df, socks, n_prod=10, n_req=100):
     targets = np.random.choice(df["dest"], size=n_prod, replace=False)
     rdf = pd.DataFrame(
         [
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     np.random.seed(0)
     pool = Pool(processes=args.jobs)
 
-    output_path = Path(f"../res/naive_attack/{args.alg}-{args.data}.pkl")
+    output_path = Path(f"../res/no_attack/{args.alg}-{args.data}.pkl")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.exists():
         print(f"{output_path} exists! Stop and quit")
@@ -53,13 +53,15 @@ if __name__ == "__main__":
 
     longest = data_nw_df["src"].map(lambda x: len(x)).max()
     print(longest)
-    socks = [f"u{a}" for a in np.random.randint(low=10**longest, high=10**longest*2, size=args.acc)]
+    socks = [f"usock{a}" for a in range(args.acc)]
 
     df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
     df_splits = [pd.concat(df_total_list[i:args.total-args.splits+i+1]) for i in range(args.splits)]
-    df_attack = [pd.concat([df, naive_attack(df, socks=socks, n_prod=args.prod, n_req=args.req)])
-                 for df in df_splits]
+    df_attack = df_splits
     G_list = [build_nx(df) for df in df_attack]
+    for G in G_list:
+        G.add_nodes_from(socks)
+
 
     # ! parallel run the chunks
     if args.alg == "fraudar":
