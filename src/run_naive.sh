@@ -1,21 +1,21 @@
 #!/usr/env bash
 
-python random_attack.py --data alpha --alg fraudar &
-python random_attack.py --data alpha --alg rsd &
-python random_attack.py --data alpha --alg rev2 &
-python random_attack.py --data alpha --alg feagle;
+python random_attack.py --data alpha --budget 100 --frac 0.2 --alg fraudar &
+python random_attack.py --data alpha --budget 100 --frac 0.2 --alg rsd &
+python random_attack.py --data alpha --budget 100 --frac 0.2 --alg rev2 &
 
-python random_attack.py --data otc --alg fraudar &
-python random_attack.py --data otc --alg rsd &
-python random_attack.py --data otc --alg rev2 &
-python random_attack.py --data otc --alg feagle;
+python random_attack.py --data otc --budget 100 --frac 0.2 --alg fraudar &
+python random_attack.py --data otc --budget 100 --frac 0.2 --alg rsd &
+python random_attack.py --data otc --budget 100 --frac 0.2 --alg rev2 &
 
-python random_attack.py --data amazon --alg fraudar &
-python random_attack.py --data amazon --alg rsd &
-python random_attack.py --data amazon --alg rev2 &
-python random_attack.py --data amazon --alg feagle;
+wait;
 
-python random_attack.py --data epinions --alg fraudar &
-python random_attack.py --data epinions --alg rsd &
-python random_attack.py --data epinions --alg rev2 &
-python random_attack.py --data epinions --alg feagle;
+python random_attack.py --data amazon --budget 100 --frac 0.2 --alg fraudar &
+python random_attack.py --data amazon --budget 100 --frac 0.2 --alg rsd &
+python random_attack.py --data amazon --budget 100 --frac 0.2 --alg rev2 &
+
+python random_attack.py --data epinions --budget 100 --frac 0.2 --alg fraudar &
+python random_attack.py --data epinions --budget 100 --frac 0.2 --alg rsd &
+python random_attack.py --data epinions --budget 100 --frac 0.2 --alg rev2 &
+
+wait;

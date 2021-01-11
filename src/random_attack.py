@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from utils import load_data, split_data_by_time, build_nx
-from detectoers import do_feagle, do_fraudar, do_rev2, do_rsd
+from detecters import do_feagle, do_fraudar, do_rev2, do_rsd
 
 
 def naive_attack(df, socks, n_prod=10, n_req=100):
@@ -31,19 +31,28 @@ if __name__ == "__main__":
     parser.add_argument("--alg", action="store", type=str, choices=["fraudar", "feagle", "rsd", "rev2"])
     parser.add_argument("--data", action="store", type=str, choices=["alpha", "otc", "amazon", "epinions"])
 
-    parser.add_argument("--jobs", action="store", type=int, default=None)
-    parser.add_argument("--splits", action="store", type=int, default=5)
-    parser.add_argument("--total", action="store", type=int, default=10)
-    parser.add_argument("--req", action="store", type=int, default=100)
-    parser.add_argument("--acc", action="store", type=int, default=10)
+    parser.add_argument("--jobs", action="store", type=int, default=None, help="multi process")
+    parser.add_argument("--splits", action="store", type=int, default=4)
+    parser.add_argument("--total", action="store", type=int, default=10, help="total number of splits")
+
+    parser.add_argument("--acc", action="store", type=int, default=0, help="placeholder")
     parser.add_argument("--prod", action="store", type=int, default=10)
+    parser.add_argument("--frac", action="store", type=float, default=0.2)
+    parser.add_argument("--req", action="store", type=int, default=0, help="placeholder")
+
+    parser.add_argument("--budget", action="store", type=float, default=100, help="total budget")
+    parser.add_argument("--ccost", action="store", type=float, default=5, help="predefined")
+    parser.add_argument("--rcost", action="store", type=float, default=1, help="predefined")
 
     args = parser.parse_args()
+    args.acc = int(args.budget * args.frac // args.ccost)
+    args.req = int(args.budget * (1-args.frac) // args.rcost)
     print(args)
+
     np.random.seed(0)
     pool = Pool(processes=args.jobs)
 
-    output_path = Path(f"../res/naive_attack/{args.alg}-{args.data}.pkl")
+    output_path = Path(f"../res/naive_attack/{args.alg}-{args.data}/{args.budget}-{args.frac}.pkl")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.exists():
         print(f"{output_path} exists! Stop and quit")
@@ -51,9 +60,7 @@ if __name__ == "__main__":
 
     data_nw_df, data_gt_df = load_data(data_name=args.data)
 
-    longest = data_nw_df["src"].map(lambda x: len(x)).max()
-    print(longest)
-    socks = [f"u{a}" for a in np.random.randint(low=10**longest, high=10**longest*2, size=args.acc)]
+    socks = [f"usock{a}" for a in range(args.acc)]
 
     df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
     df_splits = [pd.concat(df_total_list[i:args.total-args.splits+i+1]) for i in range(args.splits)]

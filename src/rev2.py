@@ -34,7 +34,7 @@ def rev2compute(G: nx.DiGraph,
         # print('-----------------')
         # print("Epoch number %d with du = %f, dp = %f, dr = %f, for (%d,%d,%d,%d,%d,%d,%d)" %
         #       (iter, du, dp, dr, alpha1, alpha2, beta1, beta2, gamma1, gamma2, gamma3))
-        print(f"du: {du}, dp: {dp}, dr: {dr}")
+        print(f"{i}> du: {du}, dp: {dp}, dr: {dr}")
         if np.isnan(du) or np.isnan(dp) or np.isnan(dr):
             break
 
