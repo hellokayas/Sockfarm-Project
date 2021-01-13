@@ -5,17 +5,17 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-from utils import load_data, split_data_by_time, build_nx
-from detecters import do_feagle, do_fraudar, do_rev2, do_rsd
-
-from gymenv import SockFarmEnv
 from stable_baselines3 import DDPG
+from stable_baselines3.common.env_checker import check_env
+
+from detecters import do_fraudar, do_rev2, do_rsd
+from gymenv import SockFarmEnv
+from utils import build_nx, load_data, split_data_by_time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="random attacks on data")
     parser.add_argument("--alg", action="store", type=str, default="fraudar",
-                        choices=["fraudar", "feagle", "rsd", "rev2"])
+                        choices=["fraudar", "rsd", "rev2"])
     parser.add_argument("--data", action="store", type=str, default="alpha",
                         choices=["alpha", "otc", "amazon", "epinions"])
 
@@ -57,9 +57,14 @@ if __name__ == "__main__":
     targets = [np.random.choice(df["dest"], size=args.prod, replace=False) for df in df_splits]
     output_users = socks + data_gt_df["id"].tolist()
 
-    # from stable_baselines3 import DDPG
-    # from stable_baselines3.common.env_checker import check_env
-    # check_env(env)
+    if args.alg == "fraudar":
+        do_alg = do_fraudar
+    elif args.alg == "rsd":
+        do_alg = do_rsd
+    elif args.alg == "rev2":
+        do_alg = do_rev2
+    else:
+        raise NotImplementedError
 
     scores = []
     for i in range(len(G_list)):
@@ -71,6 +76,8 @@ if __name__ == "__main__":
                           socks=socks,
                           prods=targets[0],
                           )
+
+        check_env(env)
 
         model = DDPG('MlpPolicy', env, verbose=1)
         model.learn(total_timesteps=int(1e1))

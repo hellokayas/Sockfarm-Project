@@ -1,6 +1,6 @@
 import gym
-import numpy as np
 import networkx as nx
+import numpy as np
 
 
 class SockFarmEnv(gym.Env):
@@ -14,7 +14,7 @@ class SockFarmEnv(gym.Env):
                  out_users=None,
                  socks=None,
                  prods=None,
-                 ):
+                 ) -> None:
         '''
         :param size: size of review product matrix
         :param max_step: max step to terminal
@@ -45,14 +45,14 @@ class SockFarmEnv(gym.Env):
         self.reset()
         return None
 
-    def reset(self):
+    def reset(self) -> np.array:
         self.pos = 0
         self.G = self.init_G.copy()
 
         self.obs = np.copy(self.init_obs)
         return self.obs
 
-    def step(self, action):
+    def step(self, action: np.array):
         # * update the observations
         # print(action.shape)
         # print(action)

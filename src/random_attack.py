@@ -1,10 +1,10 @@
 import argparse
 import pickle
-from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import multiprocessing as mp
 
 from utils import load_data, split_data_by_time, build_nx
 from detecters import do_feagle, do_fraudar, do_rev2, do_rsd
@@ -50,7 +50,8 @@ if __name__ == "__main__":
     print(args)
 
     np.random.seed(0)
-    pool = Pool(processes=args.jobs)
+    mp.set_start_method("forkserver")
+    pool = mp.Pool(processes=args.jobs)
 
     output_path = Path(f"../res/naive_attack/{args.alg}-{args.data}/{args.budget}-{args.frac}.pkl")
     output_path.parent.mkdir(parents=True, exist_ok=True)
