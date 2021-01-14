@@ -68,7 +68,9 @@ def do_feagle(G: nx.DiGraph):
 def do_rev2(G: nx.DiGraph):
     G = G.copy()
     for e in G.edges:
-        G.edges[e]["weight"] = G.edges[e]["rating"]
-    # ! lower means anormalous
-    scores = rev2compute(G, max_iter=15)
+        G.edges[e]["weight"] = (G.edges[e]["rating"] + 1)/2
+    # ! lower means anormalous for rev2
+    rev2res = rev2compute(G, max_iter=15)
+    # ! higher means anormalous
+    scores = {u: 1-rev2res[u] for u in rev2res}
     return scores

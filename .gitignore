@@ -4,6 +4,9 @@ rev2data
 .idea
 .vscode
 
+# gurobi log
+gurobi.log
+
 # python cache
 __pycache__
 # jupyter notebook cache

@@ -20,11 +20,12 @@ def load_data(data_name):
     data_nw_df["rating"] = (data_nw_df["rating"] - data_nw_df["rating"].min()) / \
         (data_nw_df["rating"].max() - data_nw_df["rating"].min()) * 2 - 1
 
+    # ! label=+1 means a benign user and label=-1 means a fraudster
     data_gt_df["id"] = "u" + data_gt_df["id"].astype(str)
     return data_nw_df, data_gt_df
 
 
-def split_data_by_time(df, n_splits=10):
+def split_data_by_time(df, n_splits=10) -> list:
     time_max = df["timestamp"].max() + pd.Timedelta("1 day")
     time_min = df["timestamp"].min()
     time_dlt = (time_max - time_min)/n_splits
@@ -43,6 +44,15 @@ def build_nx(data_nw_df: pd.DataFrame) -> nx.DiGraph:
     )
 
     return G
+
+
+def normalize_dict(d: dict) -> dict:
+    keys = list(d.keys())
+    values = [d[k] for k in keys]
+    maxv = max(values)
+    minv = min(values)
+    new_values = [(v - minv)/(maxv - minv) for v in values]
+    return dict(zip(keys, new_values))
 
 
 if __name__ == "__main__":
