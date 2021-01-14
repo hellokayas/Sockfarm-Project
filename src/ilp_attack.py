@@ -13,10 +13,12 @@ import cvxpy
 # import gurobipy
 
 
-def do_attack(G, targets, creates, exists):
-    for usock in creates:
+def do_attack(G, targets, creates_fraud, exists, creates_dummy):
+    print(len(G.nodes))
+    for usock in creates_fraud + creates_dummy:
         G.add_node(usock)
-    plans = sum([[u]*exists[u] for u in exists], []) + creates
+    print(len(G.nodes))
+    plans = sum([[u]*exists[u] for u in exists], []) + creates_fraud
     plans = np.random.permutation(plans)
     # print(f"{len(plans)}: {plans}")
     for u, p in zip(plans, targets):
@@ -49,12 +51,13 @@ if __name__ == "__main__":
     parser.add_argument("--req", action="store", type=int, default=100, help="number of requests")
 
     parser.add_argument("--budget", action="store", type=float, default=100, help="total budget")
-    parser.add_argument("--ccost", action="store", type=float, default=5, help="predefined")
-    parser.add_argument("--rcost", action="store", type=float, default=2, help="predefined")
+    parser.add_argument("--ccost", action="store", type=float, default=5, help="predefined costs for creating")
+    parser.add_argument("--rcost", action="store", type=float, default=2, help="predefined costs for rewiewing")
 
     args = parser.parse_args()
     args.ctotal = int(args.budget * args.frac // args.ccost)
     args.rtotal = args.req - args.ctotal
+    args.rtotal = args.rtotal if args.rtotal > 0 else 0
     args.rbudget = args.budget - args.ctotal * args.ccost
     # args.req = int(args.budget * (1-args.frac) // args.rcost)
     print(args)
@@ -71,7 +74,7 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError
 
-    output_path = Path(f"../res/naive_attack/{args.alg}-{args.data}/{args.budget}-{args.frac}.pkl")
+    output_path = Path(f"../res/ilp_attack/{args.alg}-{args.data}/{args.budget}-{args.frac}.pkl")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.exists():
         print(f"{output_path} exists! Stop and quit")
@@ -79,7 +82,8 @@ if __name__ == "__main__":
 
     data_nw_df, data_gt_df = load_data(data_name=args.data)
 
-    created_plans = [f"usock{a}" for a in range(args.ctotal)]
+    created_frauds = [f"usock{a}" for a in range(args.ctotal)]
+    created_dummys = [f"udummy{a}" for a in range(args.ctotal)]
     existed = data_gt_df[data_gt_df["label"] == -1]["id"].tolist()
 
     df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
@@ -89,11 +93,9 @@ if __name__ == "__main__":
     np.random.seed(0)
     targets_plans = [np.random.choice(df["dest"][:500], size=args.req, replace=True) for df in df_splits]
     print(f"split shapes: {[df.shape for df in df_splits]}")
-    # df_attack = [pd.concat([df, naive_attack(df, socks=socks, n_prod=args.prod, n_req=args.req)])
-    #              for df in df_splits]
 
     G_list = [build_nx(df) for df in df_splits]
-    # ! parallelly run the chunks
+    # ! get the intial scores
     scores = pool.map(func=do_alg, iterable=G_list, chunksize=1)
     scores = [normalize_dict(score) for score in scores]
     existed_prices = [{u: (1-score[u]) * args.rcost for u in score if u in existed} for score in scores]
@@ -106,14 +108,15 @@ if __name__ == "__main__":
 
     G_attacks = pool.starmap(
         func=do_attack,
-        iterable=zip(G_list, targets_plans, [created_plans]*len(G_list), existed_plans),
+        iterable=zip(G_list, targets_plans, [created_frauds]*len(G_list), existed_plans),
         chunksize=1,
     )
 
     scores_final = pool.map(func=do_alg, iterable=G_attacks, chunksize=1)
 
     # ! only save the users with ground truth, including the socks as well
-    output_users = created_plans + data_gt_df["id"].tolist()
+    output_users = created_frauds + data_gt_df["id"].tolist()
+    print(len(data_gt_df["id"].tolist()), len(output_users))
     output_scores = [{u: score[u] for u in score if u in output_users} for score in scores_final]
     with open(output_path, "wb") as fp:
         pickle.dump(output_scores, fp)

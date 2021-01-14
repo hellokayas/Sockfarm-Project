@@ -58,7 +58,8 @@ class SockFarmEnv(gym.Env):
         # print(action)
         action = action.reshape([len(self.socks), len(self.prods)])
         for u, p in np.array(np.where(action == 1)).T:
-            self.G.add_edge(self.socks[u], self.prods[p], rating=5)
+            # ! add review with max rating
+            self.G.add_edge(self.socks[u], self.prods[p], rating=1)
 
         self.dprob = self.detecter(self.G)
         self.nobs = np.array([self.dprob[u] for u in self.out_users]).astype(np.float)
