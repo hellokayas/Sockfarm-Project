@@ -5,8 +5,8 @@ from subprocess import Popen
 budgets = [100, 200, 300, 400]
 frac = [0.2, 0.4, 0.6, 0.8]
 
-algs = ["rsd", "fraudar", "rev2"][:2]
-datas = ["alpha", "otc", "amazon", "epinions"][:1]
+algs = ["rsd", "fraudar", "rev2"]
+datas = ["alpha", "otc", "amazon", "epinions"]
 
 
 def worker(config):
