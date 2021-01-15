@@ -83,7 +83,7 @@ if __name__ == "__main__":
     data_nw_df, data_gt_df = load_data(data_name=args.data)
 
     created_frauds = [f"usock{a}" for a in range(args.ctotal)]
-    created_dummys = [f"udummy{a}" for a in range(args.ctotal)]
+    created_dummys = [f"udummy{a}" for a in range(2*args.ctotal)]
     existed = data_gt_df[data_gt_df["label"] == -1]["id"].tolist()
 
     df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
@@ -108,14 +108,14 @@ if __name__ == "__main__":
 
     G_attacks = pool.starmap(
         func=do_attack,
-        iterable=zip(G_list, targets_plans, [created_frauds]*len(G_list), existed_plans),
+        iterable=zip(G_list, targets_plans, [created_frauds]*len(G_list), existed_plans, [created_dummys]*len(G_list)),
         chunksize=1,
     )
 
     scores_final = pool.map(func=do_alg, iterable=G_attacks, chunksize=1)
 
     # ! only save the users with ground truth, including the socks as well
-    output_users = created_frauds + data_gt_df["id"].tolist()
+    output_users = created_frauds + data_gt_df["id"].tolist() + created_dummys
     print(len(data_gt_df["id"].tolist()), len(output_users))
     output_scores = [{u: score[u] for u in score if u in output_users} for score in scores_final]
     with open(output_path, "wb") as fp:

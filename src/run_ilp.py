@@ -10,7 +10,7 @@ datas = ["alpha", "otc", "amazon", "epinions"][:1]
 
 
 def worker(config):
-    p = Popen(["python", "random_attack.py", *sum([[f"--{k}", f"{config[k]}"] for k in config], []), ])
+    p = Popen(["python", "ilp_attack.py", *sum([[f"--{k}", f"{config[k]}"] for k in config], []), ])
     p.wait()
 
 
