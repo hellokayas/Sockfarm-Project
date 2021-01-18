@@ -1,6 +1,7 @@
 import gym
 import networkx as nx
 import numpy as np
+from utils import normalize_dict
 
 
 class SockFarmEnv(gym.Env):
@@ -38,11 +39,11 @@ class SockFarmEnv(gym.Env):
 
         # print(self.action_space.n)
 
-        self.init_dprob = self.detecter(self.G)
-
+        self.init_dprob = normalize_dict(self.detecter(self.G))
         self.init_obs = np.array([self.init_dprob[u] for u in self.out_users]).astype(np.float)
 
         self.reset()
+
         return None
 
     def reset(self) -> np.array:
@@ -61,10 +62,10 @@ class SockFarmEnv(gym.Env):
             # ! add review with max rating
             self.G.add_edge(self.socks[u], self.prods[p], rating=1)
 
-        self.dprob = self.detecter(self.G)
+        self.dprob = normalize_dict(self.detecter(self.G))
         self.nobs = np.array([self.dprob[u] for u in self.out_users]).astype(np.float)
 
-        reward = np.sum(self.nobs - self.obs)
+        reward = np.sum(self.obs - self.nobs)
 
         done = True
 

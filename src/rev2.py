@@ -143,7 +143,7 @@ def rev2compute(G: nx.DiGraph,
             du += abs(G.nodes[node]["fairness"] - x)
             G.nodes[node]["fairness"] = x
 
-        if du < 0.01 and dp < 0.01 and dr < 0.01:
+        if du < 0.1 and dp < 0.1 and dr < 0.1:
             break
 
     # SAVE THE RESULT

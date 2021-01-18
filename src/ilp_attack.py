@@ -38,8 +38,9 @@ def ILPsolve(prices, req, rbudget) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="random attacks on data")
-    parser.add_argument("--alg", action="store", type=str, choices=["fraudar", "rsd", "rev2"])
-    parser.add_argument("--data", action="store", type=str, choices=["alpha", "otc", "amazon", "epinions"])
+    parser.add_argument("--alg", action="store", type=str, choices=["fraudar", "rsd", "rev2"], default="fraudar")
+    parser.add_argument("--data", action="store", type=str,
+                        choices=["alpha", "otc", "amazon", "epinions"], default="alpha")
 
     parser.add_argument("--jobs", action="store", type=int, default=None, help="multi process")
     parser.add_argument("--splits", action="store", type=int, default=4)
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     # args.req = int(args.budget * (1-args.frac) // args.rcost)
     print(args)
 
-    mp.set_start_method("forkserver")
+    mp.set_start_method("spawn", force=True)
     pool = mp.Pool(processes=args.jobs)
 
     if args.alg == "fraudar":
@@ -84,7 +85,7 @@ if __name__ == "__main__":
 
     created_frauds = [f"usock{a}" for a in range(args.ctotal)]
     created_dummys = [f"udummy{a}" for a in range(2*args.ctotal)]
-    existed = data_gt_df[data_gt_df["label"] == -1]["id"].tolist()
+    existed_frauds = data_gt_df[data_gt_df["label"] == -1]["id"].tolist()
 
     df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
     df_splits = [pd.concat(df_total_list[i:args.total-args.splits+i+1]) for i in range(args.splits)]
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     # ! get the intial scores
     scores = pool.map(func=do_alg, iterable=G_list, chunksize=1)
     scores = [normalize_dict(score) for score in scores]
-    existed_prices = [{u: (1-score[u]) * args.rcost for u in score if u in existed} for score in scores]
+    existed_prices = [{u: (1-score[u]) * args.rcost for u in score if u in existed_frauds} for score in scores]
 
     existed_plans = pool.starmap(
         func=ILPsolve,

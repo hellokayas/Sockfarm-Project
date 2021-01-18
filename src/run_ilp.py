@@ -3,10 +3,10 @@ import multiprocessing as mp
 from subprocess import Popen
 
 budgets = [100, 200, 300, 400]
-frac = [0.2, 0.4, 0.6, 0.8]
+frac = [0.0, 0.2, 0.4, 0.6, 0.8]
 
 algs = ["rsd", "fraudar", "rev2"]
-datas = ["alpha", "otc", "amazon", "epinions"]
+datas = ["alpha", "otc", "amazon", "epinions"][:3]
 
 
 def worker(config):
@@ -15,8 +15,8 @@ def worker(config):
 
 
 if __name__ == "__main__":
-    mp.set_start_method("forkserver")
-    pool = mp.Pool(processes=8)
+    mp.set_start_method("spawn", force=True)
+    pool = mp.Pool(processes=4)
     pool.map(
         func=worker,
         iterable=[
