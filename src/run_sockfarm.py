@@ -2,8 +2,7 @@ import itertools
 import multiprocessing as mp
 from subprocess import Popen
 
-budgets = [100]
-frac = [0.2]
+budgets = [100, 200, 300, 400]
 
 algs = ["rev2", "rsd", "fraudar"]
 datas = ["alpha", "otc", "amazon", "epinions"][:2]
@@ -15,8 +14,8 @@ def worker(config):
 
 
 if __name__ == "__main__":
-    mp.set_start_method("forkserver")
-    pool = mp.Pool(processes=8)
+    mp.set_start_method("spawn")
+    pool = mp.Pool(processes=6)
     pool.map(
         func=worker,
         iterable=[
@@ -24,8 +23,7 @@ if __name__ == "__main__":
                 "alg": a,
                 "data": d,
                 "budget": b,
-                "frac": f,
             }
-            for a, d, b, f in itertools.product(algs, datas, budgets, frac)],
+            for a, d, b in itertools.product(algs, datas, budgets)],
         chunksize=1,
     )

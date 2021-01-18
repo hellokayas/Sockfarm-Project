@@ -2,13 +2,13 @@ import argparse
 import pickle
 # from multiprocessing import Pool
 from pathlib import Path
-from copy import deepcopy
+# from copy import deepcopy
 
 import numpy as np
 import pandas as pd
 from stable_baselines3 import DDPG
 from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.vec_env import SubprocVecEnv
+# from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from detecters import do_fraudar, do_rev2, do_rsd
 from gymenv import SockFarmEnv
