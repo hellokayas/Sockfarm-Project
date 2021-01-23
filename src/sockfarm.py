@@ -56,6 +56,7 @@ if __name__ == "__main__":
     data_nw_df, data_gt_df = load_data(data_name=args.data)
 
     created_frauds = [f"usock{a}" for a in range(args.ctotal)]
+    created_dummys = [f"udummy{a}" for a in range(3*args.ctotal)]
     existed_frauds = data_gt_df[data_gt_df["label"] == -1]["id"].tolist()
 
     df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
@@ -64,7 +65,12 @@ if __name__ == "__main__":
     G_list = [build_nx(df) for df in df_splits]
     targets = [np.random.choice(df["dest"], size=args.prod, replace=False) for df in df_splits]
 
-    output_users = created_frauds + data_gt_df["id"].tolist()
+    output_users = created_frauds + data_gt_df["id"].tolist() + created_dummys
+
+    for G in G_list:
+        for usock in created_frauds + created_dummys:
+            G.add_node(usock)
+
     print(len(data_gt_df["id"].tolist()), len(output_users))
 
     if args.alg == "fraudar":
