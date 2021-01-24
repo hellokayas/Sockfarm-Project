@@ -2,9 +2,9 @@ import itertools
 import multiprocessing as mp
 from subprocess import Popen
 
-budgets = [100, 200, 300, 400]
+budgets = [100, 200, 300, 400, 500]
 
-algs = ["rev2", "rsd", "fraudar"]
+algs = ["fraudar", "rev2", "rsd"]
 datas = ["alpha", "otc", "amazon", "epinions"][:2]
 
 

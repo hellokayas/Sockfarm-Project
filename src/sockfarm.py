@@ -63,7 +63,8 @@ if __name__ == "__main__":
     df_splits = [pd.concat(df_total_list[i:args.total-args.splits+i+1]) for i in range(args.splits)]
 
     G_list = [build_nx(df) for df in df_splits]
-    targets = [np.random.choice(df["dest"], size=args.prod, replace=False) for df in df_splits]
+    # targets = [np.random.choice(df["dest"], size=args.prod, replace=False) for df in df_splits]
+    targets_plans = [np.random.choice(df["dest"][:500], size=args.req, replace=True) for df in df_splits]
 
     output_users = created_frauds + data_gt_df["id"].tolist() + created_dummys
 
@@ -87,13 +88,15 @@ if __name__ == "__main__":
     scores = []
     for i in range(len(G_list)):
         print(f"split {i}")
+
         env = SockFarmEnv(
-            max_step=1,
-            G=G_list[i],
+            max_step=5,
+            G=G,
             detecter=do_alg,
             out_users=created_frauds + existed_frauds,
             socks=created_frauds + existed_frauds,
-            prods=targets[i],
+            prods=np.unique(targets_plans[0]),
+            max_requests=args.req,
         )
 
         # vec_envs = SubprocVecEnv([lambda: lambda: deepcopy(env) for i in range(4)])
@@ -110,8 +113,10 @@ if __name__ == "__main__":
         # del model
         # model = DDPG.load(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
         obs = env.reset()
-        action, _states = model.predict(obs)
-        obs, rewards, dones, info = env.step(action)
+        done = False
+        while not done:
+            action, _states = model.predict(obs)
+            obs, rewards, dones, info = env.step(action)
         score = env.dprob
         scores += [score]
 

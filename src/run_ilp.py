@@ -2,10 +2,10 @@ import itertools
 import multiprocessing as mp
 from subprocess import Popen
 
-budgets = [100, 200, 300, 400]
+budgets = [100, 200, 300, 400, 500]
 frac = [0.0, 0.2, 0.4, 0.6, 0.8]
 
-algs = ["rsd", "fraudar", "rev2"]
+algs = ["fraudar", "rev2", "rsd"]
 datas = ["alpha", "otc", "amazon", "epinions"][:3]
 
 
