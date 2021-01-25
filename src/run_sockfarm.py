@@ -15,7 +15,7 @@ def worker(config):
 
 if __name__ == "__main__":
     mp.set_start_method("spawn")
-    pool = mp.Pool(processes=30)
+    pool = mp.Pool(processes=16)
     pool.map(
         func=worker,
         iterable=[

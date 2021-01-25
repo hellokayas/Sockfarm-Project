@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     G_list = [build_nx(df) for df in df_splits]
     # targets = [np.random.choice(df["dest"], size=args.prod, replace=False) for df in df_splits]
-    targets_plans = [np.random.choice(df["dest"][:10], size=args.req, replace=True) for df in df_splits]
+    targets_plans = [np.random.choice(df["dest"][:20], size=args.req, replace=True) for df in df_splits]
 
     output_users = created_frauds + data_gt_df["id"].tolist() + created_dummys
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         print(f"split {i}")
 
         env = SockFarmEnv(
-            max_step=5,
+            max_step=4,
             G=G,
             detecter=do_alg,
             out_users=created_frauds + existed_frauds,
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
         model = DDPG("MlpPolicy", env, verbose=1)
         # model = DDPG("CnnPolicy", env, verbose=1)
-        model.learn(total_timesteps=int(1e3), log_interval=10)
+        model.learn(total_timesteps=int(1e2), log_interval=4)
         model.save(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
 
         print("saved")
