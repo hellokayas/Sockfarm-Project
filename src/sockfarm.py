@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     G_list = [build_nx(df) for df in df_splits]
     # targets = [np.random.choice(df["dest"], size=args.prod, replace=False) for df in df_splits]
-    targets_plans = [np.random.choice(df["dest"][:500], size=args.req, replace=True) for df in df_splits]
+    targets_plans = [np.random.choice(df["dest"][:10], size=args.req, replace=True) for df in df_splits]
 
     output_users = created_frauds + data_gt_df["id"].tolist() + created_dummys
 
@@ -106,9 +106,12 @@ if __name__ == "__main__":
             check_env(env)
             exit(0)
 
-        model = DDPG('MlpPolicy', env, verbose=1)
-        model.learn(total_timesteps=int(1e2))
+        model = DDPG("MlpPolicy", env, verbose=1)
+        # model = DDPG("CnnPolicy", env, verbose=1)
+        model.learn(total_timesteps=int(1e3), log_interval=10)
         model.save(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
+
+        print("saved")
 
         # del model
         # model = DDPG.load(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
@@ -116,7 +119,7 @@ if __name__ == "__main__":
         done = False
         while not done:
             action, _states = model.predict(obs)
-            obs, rewards, dones, info = env.step(action)
+            obs, rewards, done, info = env.step(action)
         score = env.dprob
         scores += [score]
 

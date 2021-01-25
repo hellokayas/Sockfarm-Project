@@ -2,7 +2,7 @@ import itertools
 import multiprocessing as mp
 from subprocess import Popen
 
-budgets = [100, 200, 300, 400, 500]
+budgets = [100, 200, 300, 400]
 
 algs = ["fraudar", "rev2", "rsd"]
 datas = ["alpha", "otc", "amazon", "epinions"][:2]
@@ -15,7 +15,7 @@ def worker(config):
 
 if __name__ == "__main__":
     mp.set_start_method("spawn")
-    pool = mp.Pool(processes=6)
+    pool = mp.Pool(processes=30)
     pool.map(
         func=worker,
         iterable=[
