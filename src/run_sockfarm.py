@@ -30,6 +30,7 @@ if __name__ == "__main__":
                 "alg": a,
                 "data": d,
                 "budget": b,
+                "epoch": epochs[d],
             }
             for a, d, b in itertools.product(algs, datas, budgets)],
         chunksize=1,

@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
         model = DDPG("MlpPolicy", env, verbose=1)
         # model = DDPG("CnnPolicy", env, verbose=1)
-        model.learn(total_timesteps=int(args.epochs), log_interval=4)
+        model.learn(total_timesteps=int(args.epoch), log_interval=4)
         model.save(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
 
         print("saved")
