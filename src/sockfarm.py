@@ -33,6 +33,8 @@ if __name__ == "__main__":
     parser.add_argument("--ccost", action="store", type=float, default=5, help="predefined costs for creating")
     parser.add_argument("--rcost", action="store", type=float, default=2, help="predefined costs for rewiewing")
 
+    parser.add_argument("--epoch", action="store", type=int, default=int(1e3), help="number of epochs")
+
     parser.add_argument("--check_only", action="store_true")
 
     args = parser.parse_args()
@@ -86,6 +88,7 @@ if __name__ == "__main__":
     print(do_alg)
 
     scores = []
+    max_frauds = 200
     for i in range(len(G_list)):
         print(f"split {i}")
 
@@ -93,8 +96,8 @@ if __name__ == "__main__":
             max_step=4,
             G=G,
             detecter=do_alg,
-            out_users=created_frauds + existed_frauds,
-            socks=created_frauds + existed_frauds,
+            out_users=created_frauds + existed_frauds[:max_frauds],
+            socks=created_frauds + existed_frauds[:max_frauds],
             prods=np.unique(targets_plans[0]),
             max_requests=args.req,
         )
@@ -108,7 +111,7 @@ if __name__ == "__main__":
 
         model = DDPG("MlpPolicy", env, verbose=1)
         # model = DDPG("CnnPolicy", env, verbose=1)
-        model.learn(total_timesteps=int(1e2), log_interval=4)
+        model.learn(total_timesteps=int(args.epochs), log_interval=4)
         model.save(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
 
         print("saved")
