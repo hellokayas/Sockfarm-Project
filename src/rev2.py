@@ -91,7 +91,7 @@ def rev2compute(G: nx.DiGraph,
             user_fairness = G.nodes[edge[0]]["fairness"]
             kl_text = 1.0
 
-            x = (gamma2*rating_distance + gamma1*user_fairness + gamma3*kl_text)/(gamma1+gamma2 + gamma3)
+            x = (gamma2*rating_distance + gamma1*user_fairness + gamma3*kl_text)/(gamma1 + gamma2 + gamma3)
 
             if x < 0.00:
                 x = 0.0
@@ -145,22 +145,6 @@ def rev2compute(G: nx.DiGraph,
 
         if du < 0.1 and dp < 0.1 and dr < 0.1:
             break
-
-    # SAVE THE RESULT
-
-    # currentfvals = []
-    # for node in G.nodes:
-    #     # only store scores for edge generating nodes
-    #     if "u" == node[0]:
-    #         currentfvals.append(G.node[node]["fairness"])
-    # median_fvals = np.median(currentfvals)
-    # # print(len(currentfvals), median_fvals)
-
-    # all_node_vals = []
-    # for node in nodes:
-    #     if "u" not in node[0]:
-    #         continue
-    #     f = G.node[node]["fairness"]
 
     scores = {n: G.nodes[n]["fairness"] for n in G.nodes if n[0] == "u"}
     return scores
