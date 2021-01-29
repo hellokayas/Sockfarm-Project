@@ -127,6 +127,7 @@ if __name__ == "__main__":
         while not done:
             action, _states = model.predict(obs)
             obs, rewards, done, info = env.step(action)
+
         score = {a: None for a in alg_dict}
         score[args.alg] = env.dprob
 
@@ -138,6 +139,6 @@ if __name__ == "__main__":
 
         scores += [score]
 
-    output_scores = [{u: score[u] for u in score if u in output_users} for score in scores]
+    output_scores = [{a: {u: score[u] for u in score if u in output_users} for a in alg_dict} for score in scores]
     with open(output_path, "wb") as fp:
         pickle.dump(output_scores, fp)
