@@ -10,7 +10,8 @@ from stable_baselines3 import DDPG
 from stable_baselines3.common.env_checker import check_env
 # from stable_baselines3.common.vec_env import SubprocVecEnv
 
-from detecters import do_fraudar, do_rev2, do_rsd
+# from detecters import do_fraudar, do_rev2, do_rsd
+from algs import fraudar_alg, rsd_alg, rev2_alg
 from gymenv import SockFarmEnv
 from utils import build_nx, load_data, split_data_by_time
 
@@ -76,29 +77,32 @@ if __name__ == "__main__":
 
     print(len(data_gt_df["id"].tolist()), len(output_users))
 
-    if args.alg == "fraudar":
-        do_alg = do_fraudar
-    elif args.alg == "rsd":
-        do_alg = do_rsd
-    elif args.alg == "rev2":
-        do_alg = do_rev2
-    else:
-        raise NotImplementedError
+    alg_dict = {
+        "fraudar": fraudar_alg,
+        "rsd": rsd_alg,
+        "rev2": rev2_alg,
+    }
 
-    print(do_alg)
+    my_alg = alg_dict[args.alg]
+
+    print(my_alg)
+    # print("p1606" in G_list[0].nodes)
+    # print(targets_plans[0])
 
     scores = []
     max_frauds = 200
     for i in range(len(G_list)):
         print(f"split {i}")
 
+        existed_frauds_filter = [u for u in existed_frauds if u in G_list[i]][:max_frauds]
+
         env = SockFarmEnv(
             max_step=4,
-            G=G,
-            detecter=do_alg,
-            out_users=created_frauds + existed_frauds[:max_frauds],
-            socks=created_frauds + existed_frauds[:max_frauds],
-            prods=np.unique(targets_plans[0]),
+            G=G_list[i],
+            my_alg=my_alg,
+            out_users=created_frauds + existed_frauds_filter,
+            socks=created_frauds + existed_frauds_filter,
+            prods=np.unique(targets_plans[i]),
             max_requests=args.req,
         )
 
@@ -123,7 +127,15 @@ if __name__ == "__main__":
         while not done:
             action, _states = model.predict(obs)
             obs, rewards, done, info = env.step(action)
-        score = env.dprob
+        score = {a: None for a in alg_dict}
+        score[args.alg] = env.dprob
+
+        for a in score:
+            if score[a] is None:
+                tmp_alg = alg_dict[a](G=env.G)
+                tmp_alg.update(max_iter=3)
+                score[a] = tmp_alg.get_score()
+
         scores += [score]
 
     output_scores = [{u: score[u] for u in score if u in output_users} for score in scores]

@@ -51,7 +51,8 @@ def normalize_dict(d: dict) -> dict:
     values = [d[k] for k in keys]
     maxv = max(values)
     minv = min(values)
-    new_values = [(v - minv)/(maxv - minv) for v in values]
+    den = max(maxv - minv, 1e-3)
+    new_values = [(v - minv)/den for v in values]
     return dict(zip(keys, new_values))
 
 

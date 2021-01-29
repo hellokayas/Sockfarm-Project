@@ -1,7 +1,7 @@
 import fraudar
 import networkx as nx
-import rsd
 import numpy as np
+import rsd
 
 
 class fraudar_alg():
@@ -11,17 +11,21 @@ class fraudar_alg():
             blocks=8
     ):
         self.graph = fraudar.ReviewGraph(blocks=8, algo=fraudar.aveDegree)
-        reviewers = {n: self.graph.new_reviewer(n) for n in G.nodes if n.startswith("u")}
-        products = {n: self.graph.new_product(n) for n in G.nodes if n.startswith("p")}
+        self.reviewers_dict = {n: self.graph.new_reviewer(n) for n in G.nodes if n.startswith("u")}
+        self.products_dict = {n: self.graph.new_product(n) for n in G.nodes if n.startswith("p")}
 
         # ! the rating must in range [0, 1]
         for e in G.edges:
-            self.graph.add_review(reviewers[e[0]], products[e[1]], (G.edges[e]["rating"] + 1)/2)
+            self.graph.add_review(self.reviewers_dict[e[0]], self.products_dict[e[1]], (G.edges[e]["rating"] + 1)/2)
 
-    def update(self):
+    def update(self, max_iter=5):
+        # * max_iter is a placeholder for fraudar
         self.graph.update()
 
-    def get_prob(self):
+    def add_review(self, user=None, prod=None, rating=1):
+        self.graph.add_review(self.reviewers_dict[user], self.products_dict[prod], rating)
+
+    def get_score(self):
         # ! higher means anormalous
         scores = {r.name: r.anomalous_score for r in self.graph.reviewers}
         return scores
@@ -35,12 +39,12 @@ class rsd_alg():
     ):
 
         self.graph = rsd.ReviewGraph(theta)
-        reviewers = {n: self.graph.new_reviewer(n) for n in G.nodes if n.startswith("u")}
-        products = {n: self.graph.new_product(n) for n in G.nodes if n.startswith("p")}
+        self.reviewers_dict = {n: self.graph.new_reviewer(n) for n in G.nodes if n.startswith("u")}
+        self.products_dict = {n: self.graph.new_product(n) for n in G.nodes if n.startswith("p")}
 
         # ! the rating must in range [0, 1]
         for e in G.edges:
-            self.graph.add_review(reviewers[e[0]], products[e[1]], (G.edges[e]["rating"] + 1)/2)
+            self.graph.add_review(self.reviewers_dict[e[0]], self.products_dict[e[1]], (G.edges[e]["rating"] + 1)/2)
 
     def update(self, max_iter=10, threshold=1e-3):
         for it in range(max_iter):
@@ -48,7 +52,10 @@ class rsd_alg():
             if diff < threshold:
                 break
 
-    def get_prob(self):
+    def add_review(self, user=None, prod=None, rating=1):
+        self.graph.add_review(self.reviewers_dict[user], self.products_dict[prod], rating)
+
+    def get_score(self):
         # ! higher means anormalous
         scores = {r.name: r.anomalous_score for r in self.graph.reviewers}
         return scores
@@ -86,12 +93,17 @@ class rev2_alg():
                 self.G.nodes[node]["goodness"] = 1
 
         for edge in self.G.edges:
-            G[edge[0]][edge[1]]["fairness"] = 1
+            self.G[edge[0]][edge[1]]["fairness"] = 1
 
-    def get_prob(self):
+    def get_score(self):
         # ! higher means anormalous
         scores = {n: 1-self.G.nodes[n]["fairness"] for n in self.G.nodes if n[0] == "u"}
         return scores
+
+    def add_review(self, user=None, prod=None, rating=1):
+        assert user in self.G.nodes
+        assert prod in self.G.nodes
+        self.G.add_edge(user, prod, weight=rating, fairness=1)
 
     def update(self, max_iter=5):
         du = 0
@@ -157,6 +169,7 @@ class rev2_alg():
             for edge in self.G.edges:
                 rating_distance = 1 - (abs(self.G.edges[edge]["weight"] - self.G.nodes[edge[1]]["goodness"])/2.0)
 
+                # print(f"{edge[0]} {self.G.nodes[edge[0]]}")
                 user_fairness = self.G.nodes[edge[0]]["fairness"]
                 kl_text = 1.0
 

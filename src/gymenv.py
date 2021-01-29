@@ -1,6 +1,7 @@
 import gym
 import networkx as nx
 import numpy as np
+from copy import deepcopy
 
 from utils import normalize_dict
 
@@ -11,7 +12,7 @@ class SockFarmEnv(gym.Env):
     def __init__(self,
                  max_step: int = 1,
                  G: nx.DiGraph = None,
-                 detecter=None,
+                 my_alg=None,
                  out_users=None,
                  socks=None,
                  prods=None,
@@ -30,10 +31,12 @@ class SockFarmEnv(gym.Env):
         # * save the graph
         self.init_G = G.copy()
         self.G = G.copy()
+        self.init_alg = my_alg(self.init_G)
+        self.init_alg.update(max_iter=3)
+        self.my_alg = deepcopy(self.init_alg)
 
         # * the users we care about
         self.out_users = [u for u in out_users if u in G.nodes]
-        self.detecter = detecter
         self.socks = socks
         # * products
         self.prods = prods
@@ -56,7 +59,7 @@ class SockFarmEnv(gym.Env):
             shape=[self.user_dim + self.requests_dim],
         )
 
-        self.init_dprob = normalize_dict(self.detecter(self.G))
+        self.init_dprob = normalize_dict(self.my_alg.get_score())
 
         self.init_obs = np.zeros(shape=self.observation_space.shape)
         self.init_obs[:self.user_dim] = np.array([self.init_dprob[u] for u in self.out_users]).astype(np.float)
@@ -67,7 +70,10 @@ class SockFarmEnv(gym.Env):
 
     def reset(self) -> np.array:
         self.cur_step = 0
-        self.G = self.init_G.copy()
+        # reset the graph
+        self.G = deepcopy(self.init_G)
+        self.my_alg = deepcopy(self.init_alg)
+
         self.obs = np.copy(self.init_obs)
 
         # * generate a serie of a requests
@@ -92,15 +98,19 @@ class SockFarmEnv(gym.Env):
 
         # action \times request -> account*product (review matrix)
         for u, p in np.array(np.where(action@self.get_reqs() > 0.99)).T:
-            # ! add review with max rating
+            # ! add review with max rating, for G and algorithm
+            # print(f"add review {self.socks[u]}->{self.prods[p]} r:{1}")
             self.G.add_edge(self.socks[u], self.prods[p], rating=1)
+            self.my_alg.add_review(self.socks[u], self.prods[p], rating=1)
+
         for u, r in np.array(np.where(action > 0.99)).T:
             # ! clear request for actions
             # print(f"req0: {self.get_reqs()}")
             self.get_reqs()[r] = 0
             # print(f"req1: {self.get_reqs()}")
 
-        self.dprob = normalize_dict(self.detecter(self.G))
+        self.my_alg.update(max_iter=1)
+        self.dprob = normalize_dict(self.my_alg.get_score())
         self.nobs = np.array([self.dprob[u] for u in self.out_users]).astype(np.float)
 
         reward = np.sum(self.obs[:self.user_dim] - self.nobs)
@@ -130,7 +140,7 @@ if __name__ == "__main__":
     from stable_baselines3.common.env_checker import check_env
     from stable_baselines3 import DDPG
 
-    from detecters import do_rev2 as do_alg
+    from algs import rev2_alg as do_alg
 
     example_nw_df = pd.DataFrame.from_dict({
         "src": ["u1", "u1", "u1", "u2", "u2", "u3"],
@@ -151,9 +161,9 @@ if __name__ == "__main__":
     print(scores)
 
     env = SockFarmEnv(
-        max_step=2,
+        max_step=4,
         G=G,
-        detecter=do_alg,
+        my_alg=do_alg,
         out_users=["u3", "u2"],
         socks=["u3", "u2"],
         prods=["p1", "p3"],
