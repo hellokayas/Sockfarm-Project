@@ -139,6 +139,6 @@ if __name__ == "__main__":
 
         scores += [score]
 
-    output_scores = [{a: {u: score[u] for u in score if u in output_users} for a in alg_dict} for score in scores]
+    output_scores = [{a: {u: score[a][u] for u in score[a] if u in output_users} for a in alg_dict} for score in scores]
     with open(output_path, "wb") as fp:
         pickle.dump(output_scores, fp)
