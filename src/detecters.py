@@ -23,7 +23,7 @@ def do_fraudar(G: nx.DiGraph):
     return scores
 
 
-def do_rsd(G: nx.DiGraph):
+def do_rsd(G: nx.DiGraph, max_iter: int = 3):
     theta = 0.25
     graph = rsd.ReviewGraph(theta)
     # blocks means patterns, a hyper-param for fraudar
@@ -34,7 +34,7 @@ def do_rsd(G: nx.DiGraph):
     for e in G.edges:
         graph.add_review(reviewers[e[0]], products[e[1]], (G.edges[e]["rating"] + 1)/2)
 
-    for it in range(10):
+    for it in range(3):
         diff = graph.update()
         if diff < 1e-3:
             break
