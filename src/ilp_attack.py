@@ -32,8 +32,8 @@ def ILPsolve(prices, req, rbudget) -> dict:
     y = np.array([prices[u] for u in ulist])
     problem = cvxpy.Problem(objective=cvxpy.Maximize(x@y), constraints=[cvxpy.sum(x) <= req, x@y <= rbudget, x >= 0])
     # problem.solve(solver=cvxpy.GUROBI)
-    problem.solve(solver=cvxpy.GLPK_MI)
-    # problem.solve()
+    # problem.solve(solver=cvxpy.GLPK_MI)
+    problem.solve()
     print(f"STATUS: {problem.status} VALUE: {problem.value}")
     return dict(zip(ulist, x.value.astype(int)))
 
