@@ -27,7 +27,6 @@ if __name__ == "__main__":
 
     # parser.add_argument("--acc", action="store", type=int, default=0, help="placeholder")
     parser.add_argument("--prod", action="store", type=int, default=10)
-    parser.add_argument("--frac", action="store", type=float, default=0.2)
     parser.add_argument("--req", action="store", type=int, default=100, help="number of requests")
 
     parser.add_argument("--budget", action="store", type=float, default=100, help="total budget")
