@@ -14,6 +14,8 @@ from stable_baselines3.common.env_checker import check_env
 from algs import fraudar_alg, rsd_alg, rev2_alg
 from gymenv import SockFarmEnv
 from utils import build_nx, load_data, split_data_by_time
+from mypolicy import SockfarmPolicy
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="sockfarm attacks on data")
@@ -25,7 +27,6 @@ if __name__ == "__main__":
     parser.add_argument("--splits", action="store", type=int, default=4)
     parser.add_argument("--total", action="store", type=int, default=10, help="total number of splits")
 
-    # parser.add_argument("--acc", action="store", type=int, default=0, help="placeholder")
     parser.add_argument("--prod", action="store", type=int, default=10)
     parser.add_argument("--req", action="store", type=int, default=100, help="number of requests")
 
@@ -34,6 +35,11 @@ if __name__ == "__main__":
     parser.add_argument("--rcost", action="store", type=float, default=2, help="predefined costs for rewiewing")
 
     parser.add_argument("--epoch", action="store", type=int, default=int(1e3), help="number of epochs")
+    parser.add_argument("--outdir", action="store", type=str, default="sockfarm_attack", help="output directory")
+    parser.add_argument("--policy", action="store", type=str, default="mlp",
+                        choices=["mlp", "sockfarm"], help="policy network")
+
+    parser.add_argument("--layers", action="store", type=int, default=int(1), help="layers of nonterminals")
 
     parser.add_argument("--check_only", action="store_true")
 
@@ -49,7 +55,7 @@ if __name__ == "__main__":
     np.random.seed(0)
     # pool = Pool(processes=args.jobs)
 
-    output_path = Path(f"../res/sockfarm_attack/{args.alg}-{args.data}/{args.budget}.pkl")
+    output_path = Path(f"../res/{args.outdir}/{args.alg}-{args.data}/{args.budget}.pkl")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.exists():
         print(f"{output_path} exists! Stop and quit")
@@ -85,8 +91,14 @@ if __name__ == "__main__":
     my_alg = alg_dict[args.alg]
 
     print(my_alg)
-    # print("p1606" in G_list[0].nodes)
-    # print(targets_plans[0])
+
+    policy_dict = {
+        "mlp": "MlpPolicy",
+        "sockfarm": SockfarmPolicy,
+    }
+
+    my_policy = policy_dict[args.policy]
+    print(my_policy)
 
     scores = []
     max_frauds = 200
@@ -112,10 +124,17 @@ if __name__ == "__main__":
             check_env(env)
             exit(0)
 
-        model = DDPG("MlpPolicy", env, verbose=1)
+        model = DDPG(my_policy, env, verbose=1,
+                     policy_kwargs={
+                         "user_dim": env.user_dim,
+                         "max_requests": env.max_requests,
+                         "max_prod": env.max_prod,
+                         "subnets": args.layers,
+                     }
+                     )
         # model = DDPG("CnnPolicy", env, verbose=1)
         model.learn(total_timesteps=int(args.epoch), log_interval=4)
-        model.save(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
+        model.save(f"../res/{args.outdir}/{args.alg}-{args.data}/m-{args.budget}-{i}")
 
         print("saved")
 

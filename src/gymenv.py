@@ -4,6 +4,7 @@ import numpy as np
 from copy import deepcopy
 
 from utils import normalize_dict
+from mypolicy import SockfarmPolicy
 
 
 class SockFarmEnv(gym.Env):
@@ -40,6 +41,7 @@ class SockFarmEnv(gym.Env):
         self.socks = socks
         # * products
         self.prods = prods
+        self.max_prod = len(self.prods)
 
         self.max_requests = max_requests
 
@@ -123,7 +125,7 @@ class SockFarmEnv(gym.Env):
         if not done:
             self.get_reqs()[np.arange(self.num_rquests[self.cur_step]), self.requests[self.cur_step]] = 1
 
-        info = {"info": "info"}
+        info = {"info": None}
 
         return self.obs, reward, done, info
 
@@ -183,8 +185,19 @@ if __name__ == "__main__":
     env.reset()
     check_env(env)
 
-    model = DDPG('MlpPolicy', env, verbose=1)
+    # model = DDPG("MlpPolicy", env, verbose=1)
+    model = DDPG(SockfarmPolicy, env, verbose=1,
+                 policy_kwargs={"user_dim": env.user_dim, "max_requests": env.max_requests, "max_prod": env.max_prod}
+                 )
     model.learn(total_timesteps=int(1e2))
+
+    obs = env.reset()
+    done = False
+    while not done:
+        action, _states = model.predict(obs)
+        obs, rewards, done, info = env.step(action)
+    print(env.action_space.shape)
+    print(action.shape)
 
     # print(env.observation_space.sample())
     # env.step(env.action_space.sample())
