@@ -11,12 +11,13 @@ datas = ["alpha", "otc", "amazon", "epinions"][2:3]
 epochs = {
     "alpha": int(1e2),
     "otc": int(1e2),
-    "amazon": int(50),
-    "epinions": int(10),
+    "amazon": int(90),
+    "epinions": int(20),
 }
 
-req = int(1e4)
-budgets = [b*100 for b in budgets]
+req = int(1e3)
+budgets = [b*10 for b in budgets]
+ccost = 25
 
 
 def worker(config):
@@ -47,6 +48,7 @@ if __name__ == "__main__":
                 "outdir": outdir,
                 "layers": layers,
                 "policy": "sockfarm",
+                "ccost": ccost,
             }
             for a, d, b in itertools.product(algs, datas, budgets)],
         chunksize=1,

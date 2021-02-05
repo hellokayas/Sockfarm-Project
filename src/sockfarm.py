@@ -64,7 +64,7 @@ if __name__ == "__main__":
     data_nw_df, data_gt_df = load_data(data_name=args.data)
 
     created_frauds = [f"usock{a}" for a in range(args.ctotal)]
-    created_dummys = [f"udummy{a}" for a in range(3*args.ctotal)]
+    created_dummys = [f"udummy{a}" for a in range(2*args.ctotal)]
     existed_frauds = data_gt_df[data_gt_df["label"] == -1]["id"].tolist()
 
     df_total_list = split_data_by_time(data_nw_df, n_splits=args.total)
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     print(my_policy)
 
     scores = []
-    max_frauds = 200
+    max_frauds = 10
     for i in range(len(G_list)):
         print(f"split {i}")
 

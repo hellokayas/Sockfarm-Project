@@ -7,7 +7,7 @@ import pandas as pd
 import multiprocessing as mp
 
 from utils import load_data, split_data_by_time, build_nx, normalize_dict
-from detecters import do_fraudar, do_rev2, do_rsd
+from detecters import do_fraudar, do_rev2, do_rsd, do_fbox
 
 import cvxpy
 # import gurobipy
@@ -40,7 +40,8 @@ def ILPsolve(prices, req, rbudget) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="random attacks on data")
-    parser.add_argument("--alg", action="store", type=str, choices=["fraudar", "rsd", "rev2"], default="fraudar")
+    parser.add_argument("--alg", action="store", type=str,
+                        choices=["fraudar", "rsd", "rev2", "fbox"], default="fraudar")
     parser.add_argument("--data", action="store", type=str,
                         choices=["alpha", "otc", "amazon", "epinions"], default="alpha")
 
@@ -68,14 +69,14 @@ if __name__ == "__main__":
     mp.set_start_method("spawn", force=True)
     pool = mp.Pool(processes=args.jobs)
 
-    if args.alg == "fraudar":
-        do_alg = do_fraudar
-    elif args.alg == "rsd":
-        do_alg = do_rsd
-    elif args.alg == "rev2":
-        do_alg = do_rev2
-    else:
-        raise NotImplementedError
+    alg_dict = {
+        "frudar": do_fraudar,
+        "rsd": do_rsd,
+        "rev2": do_rev2,
+        "fbox": do_fbox,
+    }
+
+    do_alg = alg_dict[args.alg]
 
     output_path = Path(f"../res/ilp_attack/{args.alg}-{args.data}/{args.budget}-{args.frac}.pkl")
     output_path.parent.mkdir(parents=True, exist_ok=True)

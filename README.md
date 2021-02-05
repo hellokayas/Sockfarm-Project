@@ -7,9 +7,11 @@ conda env create -f environment.yml
 ```
 
 If you want to modify the existing env, do the follows instead
-```
+```bash
 conda env update
 ```
+
+To export the current env, do `conda env export > environment.yml`.
 
 ## overall organization
 

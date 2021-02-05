@@ -5,8 +5,8 @@ from subprocess import Popen
 budgets = [100, 200, 300, 400]
 frac = [0.0, 0.2, 0.4, 0.6, 0.8]
 
-algs = ["fraudar", "rev2", "rsd"]
-datas = ["alpha", "otc", "amazon", "epinions"][3:]
+algs = ["fraudar", "rev2", "rsd", "fbox"]
+datas = ["alpha", "otc", "amazon", "epinions"][:2]
 
 
 def worker(config):
@@ -16,7 +16,7 @@ def worker(config):
 
 if __name__ == "__main__":
     mp.set_start_method("spawn", force=True)
-    pool = mp.Pool(processes=10)
+    pool = mp.Pool(processes=20)
     pool.map(
         func=worker,
         iterable=[
