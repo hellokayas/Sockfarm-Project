@@ -70,7 +70,7 @@ if __name__ == "__main__":
     pool = mp.Pool(processes=args.jobs)
 
     alg_dict = {
-        "frudar": do_fraudar,
+        "fraudar": do_fraudar,
         "rsd": do_rsd,
         "rev2": do_rev2,
         "fbox": do_fbox,
