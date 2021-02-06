@@ -5,7 +5,7 @@ import scipy.sparse.linalg as linalg
 from specgreedy.greedy import avgdeg_even, avgdeg_log, avgdeg_sqrt
 
 
-def sgcompute(G: nx.DiGraph, w_g="sqrt", topk=100, alpha=1.0):
+def sgcompute(G: nx.DiGraph, w_g="sqrt", topk=10, alpha=1.0):
     G_nodes = list(G.nodes)
 
     sm = nx.to_scipy_sparse_matrix(G, nodelist=G_nodes)

@@ -10,7 +10,6 @@ from utils import load_data, split_data_by_time, build_nx, normalize_dict
 from detecters import do_fraudar, do_rev2, do_rsd, do_fbox, do_sg
 
 import cvxpy
-# import gurobipy
 
 
 def do_attack(G, targets, creates_fraud, exists, creates_dummy):
