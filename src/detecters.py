@@ -5,6 +5,7 @@ import rsd
 
 from rev2 import rev2compute
 from UGFraud.Detector.fBox import fBox
+from sgcompute import sgcompute
 
 
 def do_fraudar(G: nx.DiGraph):
@@ -83,6 +84,15 @@ def do_fbox(G: nx.DiGraph):
     detected_user, detected_prod = model.run(tau=20, k=50)
     # * summarize the detected users
     du = set(sum([detected_user[d] for d in detected_user], []))
+    # ! 1 means anormalous 0 means begnin
+    scores = {u: 1 if u in du else 0 for u in G}
+    return scores
+
+
+def do_sg(G: nx.DiGraph):
+    G = G.copy()
+    du, _ = sgcompute(G)
+    # * summarize the detected users
     # ! 1 means anormalous 0 means begnin
     scores = {u: 1 if u in du else 0 for u in G}
     return scores

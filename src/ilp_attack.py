@@ -7,7 +7,7 @@ import pandas as pd
 import multiprocessing as mp
 
 from utils import load_data, split_data_by_time, build_nx, normalize_dict
-from detecters import do_fraudar, do_rev2, do_rsd, do_fbox
+from detecters import do_fraudar, do_rev2, do_rsd, do_fbox, do_sg
 
 import cvxpy
 # import gurobipy
@@ -41,7 +41,7 @@ def ILPsolve(prices, req, rbudget) -> dict:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="random attacks on data")
     parser.add_argument("--alg", action="store", type=str,
-                        choices=["fraudar", "rsd", "rev2", "fbox"], default="fraudar")
+                        choices=["fraudar", "rsd", "rev2", "fbox", "sg"], default="fraudar")
     parser.add_argument("--data", action="store", type=str,
                         choices=["alpha", "otc", "amazon", "epinions"], default="alpha")
 
@@ -53,6 +53,8 @@ if __name__ == "__main__":
     parser.add_argument("--prod", action="store", type=int, default=10)
     parser.add_argument("--frac", action="store", type=float, default=0.2)
     parser.add_argument("--req", action="store", type=int, default=100, help="number of requests")
+
+    parser.add_argument("--outdir", action="store", type=str, default="ilp_attack", help="output directory")
 
     parser.add_argument("--budget", action="store", type=float, default=100, help="total budget")
     parser.add_argument("--ccost", action="store", type=float, default=5, help="predefined costs for creating")
@@ -74,11 +76,12 @@ if __name__ == "__main__":
         "rsd": do_rsd,
         "rev2": do_rev2,
         "fbox": do_fbox,
+        "sg": do_sg,
     }
 
     do_alg = alg_dict[args.alg]
 
-    output_path = Path(f"../res/ilp_attack/{args.alg}-{args.data}/{args.budget}-{args.frac}.pkl")
+    output_path = Path(f"../res/{args.outdir}/{args.alg}-{args.data}/{args.budget}-{args.frac}.pkl")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if output_path.exists():
         print(f"{output_path} exists! Stop and quit")
