@@ -133,13 +133,16 @@ if __name__ == "__main__":
                      }
                      )
         # model = DDPG("CnnPolicy", env, verbose=1)
-        model.learn(total_timesteps=int(args.epoch), log_interval=4)
-        model.save(f"../res/{args.outdir}/{args.alg}-{args.data}/m-{args.budget}-{i}")
 
-        print("saved")
+        model_path = Path(f"../res/{args.outdir}/{args.alg}-{args.data}/m-{args.budget}-{i}")
+        if model_path.exists():
+            model = DDPG.load(model_path)
+            print(f"load model from {model_path}")
+        else:
+            model.learn(total_timesteps=int(args.epoch), log_interval=4)
+            model.save(model_path)
+            print(f"save model to {model_path}")
 
-        # del model
-        # model = DDPG.load(f"../res/sockfarm_attack/{args.alg}-{args.data}/m-{args.budget}-{i}")
         obs = env.reset()
         done = False
         while not done:

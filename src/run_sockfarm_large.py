@@ -11,7 +11,7 @@ datas = ["alpha", "otc", "amazon", "epinions"][2:3]
 epochs = {
     "alpha": int(1e2),
     "otc": int(1e2),
-    "amazon": int(90),
+    "amazon": int(10),
     "epinions": int(20),
 }
 
