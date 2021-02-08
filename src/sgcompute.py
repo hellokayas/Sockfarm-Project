@@ -42,7 +42,7 @@ def sgcompute(G: nx.DiGraph, w_g="sqrt", topk=10, alpha=1.0):
     # t1 = time.time()
     while k < topk:
         print("\ncurrent ks: {}".format(start + decom_n * step))
-        U, S, V = linalg.svds(sm.asfptype(), k=start + decom_n * step, which='LM', tol=1e-4)
+        U, S, V = linalg.svds(sm.asfptype(), k=start + decom_n * step, which='LM', tol=1e-2)
         U, S, V = U[:, ::-1], S[::-1], V.T[:, ::-1]
         print("lambdas: {}".format(S))
         kth = k

@@ -11,7 +11,7 @@ from stable_baselines3.common.env_checker import check_env
 # from stable_baselines3.common.vec_env import SubprocVecEnv
 
 # from detecters import do_fraudar, do_rev2, do_rsd
-from algs import fraudar_alg, rsd_alg, rev2_alg
+from algs import fraudar_alg, rsd_alg, rev2_alg, sg_alg
 from gymenv import SockFarmEnv
 from utils import build_nx, load_data, split_data_by_time
 from mypolicy import SockfarmPolicy
@@ -19,7 +19,7 @@ from mypolicy import SockfarmPolicy
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="sockfarm attacks on data")
-    parser.add_argument("--alg", action="store", type=str, choices=["fraudar", "rsd", "rev2"], default="fraudar")
+    parser.add_argument("--alg", action="store", type=str, choices=["fraudar", "rsd", "rev2", "sg"], default="fraudar")
     parser.add_argument("--data", action="store", type=str,
                         choices=["alpha", "otc", "amazon", "epinions"], default="alpha")
 
@@ -86,6 +86,7 @@ if __name__ == "__main__":
         "fraudar": fraudar_alg,
         "rsd": rsd_alg,
         "rev2": rev2_alg,
+        "sg": sg_alg,
     }
 
     my_alg = alg_dict[args.alg]
@@ -124,14 +125,6 @@ if __name__ == "__main__":
             check_env(env)
             exit(0)
 
-        model = DDPG(my_policy, env, verbose=1,
-                     policy_kwargs={
-                         "user_dim": env.user_dim,
-                         "max_requests": env.max_requests,
-                         "max_prod": env.max_prod,
-                         "subnets": args.layers,
-                     }
-                     )
         # model = DDPG("CnnPolicy", env, verbose=1)
 
         model_path = Path(f"../res/{args.outdir}/{args.alg}-{args.data}/m-{args.budget}-{i}")
@@ -139,6 +132,25 @@ if __name__ == "__main__":
             model = DDPG.load(model_path)
             print(f"load model from {model_path}")
         else:
+            if args.policy == "sockfarm":
+                model = DDPG(
+                    my_policy,
+                    env,
+                    verbose=1,
+                    policy_kwargs={
+                        "user_dim": env.user_dim,
+                        "max_requests": env.max_requests,
+                        "max_prod": env.max_prod,
+                        "subnets": args.layers,
+                    }
+                )
+            elif args.policy == "mlp":
+                model = DDPG(
+                    my_policy,
+                    env,
+                    verbose=1,
+                )
+
             model.learn(total_timesteps=int(args.epoch), log_interval=4)
             model.save(model_path)
             print(f"save model to {model_path}")

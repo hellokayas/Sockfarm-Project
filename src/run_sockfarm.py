@@ -4,12 +4,12 @@ from subprocess import Popen
 
 budgets = [100, 200, 300, 400]
 
-algs = ["rev2", "rsd", "fraudar"]
-datas = ["alpha", "otc", "amazon", "epinions"][3:4]
+algs = ["rev2", "rsd", "fraudar", "sg"][3:]
+datas = ["alpha", "otc", "amazon", "epinions"][:]
 
 epochs = {
-    "alpha": int(1e2),
-    "otc": int(1e2),
+    "alpha": int(50),
+    "otc": int(50),
     "amazon": int(10),
     "epinions": int(10),
 }

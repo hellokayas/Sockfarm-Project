@@ -118,6 +118,8 @@ if __name__ == "__main__":
         chunksize=1,
     )
 
+    print("attack applied")
+
     scores_final = pool.map(func=do_alg, iterable=G_attacks, chunksize=1)
 
     # ! only save the users with ground truth, including the socks as well

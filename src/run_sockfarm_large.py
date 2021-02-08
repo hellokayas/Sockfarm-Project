@@ -5,7 +5,7 @@ import argparse
 
 budgets = [100, 200, 300, 400]
 
-algs = ["rev2", "rsd", "fraudar"]
+algs = ["rev2", "rsd", "fraudar", "sg"]
 datas = ["alpha", "otc", "amazon", "epinions"][2:3]
 
 epochs = {

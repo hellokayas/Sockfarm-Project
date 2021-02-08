@@ -5,7 +5,7 @@ from subprocess import Popen
 budgets = [100, 200, 300, 400]
 frac = [0.0, 0.2, 0.4, 0.6, 0.8]
 
-algs = ["fraudar", "rev2", "rsd", "fbox", "sg"][:3]
+algs = ["fraudar", "rev2", "rsd", "sg", "fbox"][3:4]
 datas = ["alpha", "otc", "amazon", "epinions"][2:3]
 
 req = int(1e3)
