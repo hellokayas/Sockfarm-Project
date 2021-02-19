@@ -6,7 +6,7 @@ budgets = [100, 200, 300, 400]
 frac = [0.7, 0.9]
 
 algs = ["fraudar", "rev2", "rsd", "sg", "fbox"][:4]
-datas = ["alpha", "otc", "amazon", "epinions"][2:]
+datas = ["alpha", "otc", "amazon", "epinions"][:]
 
 outdir = "rtv_attack"
 
