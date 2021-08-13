@@ -4,8 +4,8 @@ from subprocess import Popen
 
 budgets = [100, 200, 300, 400]
 
-algs = ["rev2", "rsd", "fraudar", "sg"][3:]
-datas = ["alpha", "otc", "amazon", "epinions"][:]
+algs = ["rev2", "rsd", "fraudar", "sg"][:]
+datas = ["alpha", "otc", "amazon", "epinions"][:2]
 
 epochs = {
     "alpha": int(50),
@@ -15,7 +15,10 @@ epochs = {
 }
 
 req = 100
-outdir = "sockfarm_attack"
+# outdir = "sockfarm_attack"
+outdir = "sockfarm_attack_80"
+
+factor = 0.8
 
 
 def worker(config):
@@ -33,7 +36,7 @@ if __name__ == "__main__":
                 "alg": a,
                 "data": d,
                 "budget": b,
-                "epoch": epochs[d],
+                "epoch": int(epochs[d] * factor),
                 "req": req,
                 "outdir": outdir,
             }

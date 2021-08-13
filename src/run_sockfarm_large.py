@@ -6,7 +6,7 @@ import argparse
 budgets = [100, 200, 300, 400]
 
 algs = ["rev2", "rsd", "fraudar", "sg"]
-datas = ["alpha", "otc", "amazon", "epinions"][3:]
+datas = ["alpha", "otc", "amazon", "epinions"][:2]
 
 epochs = {
     "alpha": int(1e2),
@@ -28,10 +28,11 @@ def worker(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="run sockfarm large")
     parser.add_argument("--mode", action="store", type=str, choices=["single", "double"], default="single")
+    parser.add_argument("--sub", action="store", type=float, default=1.)
     args = parser.parse_args()
     print(args)
 
-    outdir = f"sockfarm_large_{args.mode}"
+    outdir = f"sockfarm_large_{args.mode}_{args.sub:.2}"
     layers = 1 if args.mode == "single" else 2
 
     mp.set_start_method("spawn")
@@ -43,7 +44,7 @@ if __name__ == "__main__":
                 "alg": a,
                 "data": d,
                 "budget": b,
-                "epoch": epochs[d],
+                "epoch": int(epochs[d] * args.sub),
                 "req": req,
                 "outdir": outdir,
                 "layers": layers,
